@@ -32,6 +32,14 @@ public class ClientRunner {
 				Client client = new Client(HOST, PORT);
 				// Sends file name as request to socket channel
 				client.send(fileName);
+
+				// Pause for 5 seconds to realize the operations.
+				// This can be removed any time.
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				// receives file from socket channel and downloads to client location
 				client.receive(fileName);
 				// Close the channel

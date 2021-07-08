@@ -28,7 +28,9 @@ public class Worker extends Thread {
 		read();
 		write();
 		try {
-			this.channel.close();
+			if (this.channel != null) {
+				this.channel.close();
+			}
 		} catch (Exception e) {
 			System.out.println("Exception while closing the channel");
 		}

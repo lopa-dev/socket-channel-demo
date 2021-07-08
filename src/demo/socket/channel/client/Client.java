@@ -48,21 +48,15 @@ public class Client {
 		byte[] messageData = new String(fileName).getBytes();
 		ByteBuffer buffer = ByteBuffer.wrap(messageData);
 		try {
-			this.channel.write(buffer);
-			System.out.println(clientName + " sent request to download file :: " + fileName + " on Channel["
-					+ this.channelId + "]");
-			buffer.clear();
+			if (this.channel != null) {
+				this.channel.write(buffer);
+				System.out.println(clientName + " sent request to download file :: " + fileName + " on Channel["
+						+ this.channelId + "]");
+				buffer.clear();
+			}
 		} catch (IOException e) {
 			System.out.println(clientName + "is unable to send the file name:: " + fileName + " on Channel["
 					+ this.channelId + "]");
-		}
-
-		// Pause for 5 seconds to realize the operations.
-		// This can be removed any time.
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -73,32 +67,44 @@ public class Client {
 	 * @param fileName
 	 */
 	public void receive(String fileName) {
-		String filePath = String.format(CLIENT_FILE_PATH_PATTERN, fileName);
-		Path path = Paths.get(filePath);
-		try (FileChannel fileChannel = FileChannel.open(path, EnumSet.of(StandardOpenOption.CREATE,
-				StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE))) {
-			ByteBuffer buffer = ByteBuffer.allocate(1024);
-			while (this.channel.read(buffer) > 0) {
-				buffer.flip();
-				fileChannel.write(buffer);
-				buffer.clear();
+		if (this.channel != null) {
+			String filePath = String.format(CLIENT_FILE_PATH_PATTERN, fileName);
+			Path path = Paths.get(filePath);
+			try {
+				ByteBuffer buffer = ByteBuffer.allocate(1024);
+				int numRead = this.channel.read(buffer);
+				if (numRead > 0) {
+					FileChannel fileChannel = FileChannel.open(path, EnumSet.of(StandardOpenOption.CREATE,
+							StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE));
+					do {
+						buffer.flip();
+						fileChannel.write(buffer);
+						buffer.clear();
+					} while (this.channel.read(buffer) > 0);
+					System.out.println(this.clientName + " received the file:: " + filePath + " on Channel["
+							+ this.channelId + "]");
+				} else {
+					System.out.println(this.clientName + " is unable to receive the file:: " + filePath + " on Channel["
+							+ this.channelId + "] from Server");
+				}
+			} catch (Exception e) {
+				System.out.println(this.clientName + " is unable to receive the file:: " + filePath + " on Channel["
+						+ this.channelId + "]");
 			}
-			System.out.println(
-					this.clientName + " received the file:: " + filePath + " on Channel[" + this.channelId + "]");
-		} catch (Exception e) {
-			System.out.println(this.clientName + "is unable to receive the file:: " + filePath + " on Channel["
-					+ this.channelId + "]");
 		}
 	}
+
 	/**
 	 * Closes the Socket Channel
 	 */
 	public void close() {
-		try {
-			this.channel.close();
-			System.out.println("Channel[" + this.channelId + "] is closed successfully.");
-		} catch (IOException e) {
-			System.out.println("Unable to close Channel[" + this.channelId + "]");
+		if (this.channel != null) {
+			try {
+				this.channel.close();
+				System.out.println(this.clientName + "::Channel[" + this.channelId + "] is closed successfully.");
+			} catch (IOException e) {
+				System.out.println(this.clientName + "::Unable to close Channel[" + this.channelId + "]");
+			}
 		}
 	}
 }
