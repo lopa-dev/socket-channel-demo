@@ -42,10 +42,15 @@ public class Client {
 	 * When called this method sends the file name to the server by writing it to
 	 * the channel
 	 * 
+	 * { 
+	 * 		"client" 	: "CLIENT-1",
+	 * 	 	"file"		: "test1.txt"
+	 * }
+	 * 
 	 * @param fileName
 	 */
 	public void send(String fileName) {
-		byte[] messageData = new String(fileName).getBytes();
+		byte[] messageData = new String(clientName+"||"+fileName).getBytes();
 		ByteBuffer buffer = ByteBuffer.wrap(messageData);
 		try {
 			if (this.channel != null) {

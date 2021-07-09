@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 public class Worker extends Thread {
 	private final SocketChannel channel;
 	private String data;
+	private String client;
 
 	public Worker(SocketChannel channel) {
 		this.channel = channel;
@@ -50,14 +51,17 @@ public class Worker extends Thread {
 			if (numRead == -1) {
 				Socket socket = this.channel.socket();
 				SocketAddress remoteAddr = socket.getRemoteSocketAddress();
-				System.out.println("Connection closed by client: " + remoteAddr);
+				System.out.println("Connection closed by client  : " + remoteAddr);
 				this.channel.close();
 			}
 
 			byte[] requestData = new byte[numRead];
 			System.arraycopy(buffer.array(), 0, requestData, 0, numRead);
-			this.data = new String(requestData);
-			System.out.println("File name requested from client:: " + data);
+			String str = new String(requestData);
+			String[] arr = str.split("\\|\\|");
+			this.data = arr[1];
+			this.client = arr[0];
+			System.out.println("File name :: " + data + " is requested from client :: " + client);
 		} catch (Exception e) {
 			System.out.println("Exception while reading the file name from client");
 		}
@@ -78,7 +82,7 @@ public class Worker extends Thread {
 				this.channel.write(buffer);
 				buffer.clear();
 			}
-			System.out.println("File Sent::" + filePath);
+			System.out.println("File located :: " + filePath + " . And sent to client :: " + client);
 		} catch (Exception e) {
 			System.out.println("Server is unable to locate the requested file:: " + filePath);
 		}
